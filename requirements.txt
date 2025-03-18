@@ -5,3 +5,5 @@ ipykernel==6.29.5
 ollama==0.4.7
 PyMuPDF==1.25.4
 langchain-huggingface==0.1.2
+pandas==2.2.3
+openpyxl==3.1.5

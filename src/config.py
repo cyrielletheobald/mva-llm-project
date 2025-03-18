@@ -1,0 +1,1 @@
+PATH_PROJECT = "C:/Users/victo/Documents/LLM/mva-llm-project/" 
