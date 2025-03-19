@@ -22,7 +22,7 @@ Your response must always be structured into two clearly separated sections:
 [The final Soufflé program implementing the diagnostic logic.]
 </code>
 
-Here is an example of code : 
+Here is an example of code with an observation : 
 
 <code>
 from pyDatalog import pyDatalog
