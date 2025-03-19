@@ -1,6 +1,10 @@
 import pandas as pd
 import os
+import re 
+import subprocess 
+import pandas as pd 
 from src.config import PATH_PROJECT
+
 
 df = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "dataset.xlsx").fillna("Non renseigné")
 df_instructions = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "instructions.xlsx")
@@ -26,3 +30,16 @@ def get_prompt_patient_data(patient_id):
             mood_episodes.append(episode)
     mood_episodes = "Mood episodes : " + "; ".join(mood_episodes)
     return observed, history_conditions, mood_episodes
+
+
+
+# def run_souffle(dl_file, input_dir, output_dir):
+#     command = ["souffle", "-F", input_dir, "-D", output_dir, dl_file]
+#     subprocess.run(command, check=True)
+#     print("Soufflé execution completed.")
+
+# def read_output_csv(output_dir, relation_name):
+#     csv_path = f"{output_dir}/{relation_name}.csv"
+#     df = pd.read_csv(csv_path, delimiter='\t')
+#     return df
+
