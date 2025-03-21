@@ -1,0 +1,11 @@
+To translate the mood disorder criteria from ICD-11 CDDR into Python using PyDatalog, we need to define rules that relate symptoms observed over weeks and past conditions experienced by patients. The goal is to diagnose specific mood disorders based on these observations. We will start by defining terms for each symptom (Depressive, Manic, Mixed, Hypomanic episodes) and corresponding conditions (Bipolar I, Bipolar II, Single Episode Depressive Disorder, Recurrent Depressive Disorder).
+
+We'll use the Observed relation to track symptoms over weeks and the History relation to record past conditions. The Diagnosis relation will be used to output the diagnosed disorder based on these observations.
+
+For each mood disorder, we need to define rules that check for specific combinations of symptoms lasting a certain duration or occurring more than a specified number of times. This involves using logical AND (conjunction) and OR (disjunction) between symptoms and conditions.
+
+1. **Symptom Definitions**: Define terms for depressive, manic, mixed, and hypomanic episodes as observed symptoms in the Observed relation.
+2. **Condition Definitions**: Define terms for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder as past conditions in the History relation.
+3. **Diagnosis Rules**: Create rules that check if a patient meets criteria for any of these disorders based on their symptoms and history. This involves checking durations (weeks) and counts of specific symptoms or conditions.
+
+We'll use PyDatalog's logical operators to connect symptom observations with the appropriate disorder diagnosis. The key is to ensure that the rules are specific enough to distinguish between different mood disorders based on ICD-11 criteria.

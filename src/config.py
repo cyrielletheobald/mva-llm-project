@@ -16,14 +16,14 @@ You declare with pyDatalog.create_terms('PATIENT, WEEKS, Observed, History, Diag
 Your response must always be structured into two clearly separated sections:
 
 <explanation>
-[Your step-by-step reasoning on how to build the Datalog rules from the given criteria.]
+[Your step-by-step reasoning on how to build the Datalog rules from the given criteria. IT MUST BE IN DETAILS DONT MISS ANYTHING]
 </explanation>
 
 <code>
 [The final Soufflé program written in python with the package pyDatalog implementing the diagnostic logic.]
 </code>
 
-Here is an example of code with an observation : 
+Here is an example of code : 
 
 <code>
 from pyDatalog import pyDatalog
@@ -34,11 +34,7 @@ sup = lambda x,y : x >= y
 # Manic Episode rules
 ManicEpisode(PATIENT) <= Observed(PATIENT, 'Mania', WEEKS) & (sup(WEEKS, 3.0))
 
-# Facts
-+ Observed('John', 'Mania', 4.0)
 
-# Correct query scope:
-print(ManicEpisode(PATIENT))
 
 </code>
 
@@ -49,6 +45,28 @@ Rules:
 - Handle multiple disorders in the same program when required.
 
 You are specialized in psychiatric disorders and are familiar with ICD-11 clinical criteria, symptomatology, and diagnostic thresholds. '''
+
+PROMPT_MODEL_EXPERT = '''You are an expert in Datalog programming in Python, specifically with the pyDatalog package.
+You will receive a pyDatalog code as input, and you need to verify that it is error-free. 
+Structure your response as follows: between the <rep> and </rep> tags, explain in detail the errors and your corrections. 
+Then, BETWEEN the <code> and </code> tags, write the CORRECTED code. The code must be usable. If there is no error just write the code you received.
+YOU MUST WRITE THE CODE BETWEEN THE SPECIFIED TAGS. 
+Note that in pyDatalog, comparisons of floats or integers are not supported by \geq or \leq. You must create a predicate function if it hasn't been done, such as sup = lambda x, y: x >= y. 
+The OR operation written as | is also not usable; write it on two separate lines if necessary.
+Example of a code which is correct : 
+
+<code>
+from pyDatalog import pyDatalog
+
+pyDatalog.clear()
+pyDatalog.create_terms('PATIENT, WEEKS, Observed, ManicEpisode, sup')
+sup = lambda x,y : x >= y 
+# Manic Episode rules
+ManicEpisode(PATIENT) <= Observed(PATIENT, 'Mania', WEEKS) & (sup(WEEKS, 3.0))
+
+</code>
+
+'''
 
 
 

@@ -1,6 +1,6 @@
 import ollama
 from src.dataprep import get_prompt_patient_data, system
-from src.config import PROMPT_SYSTEM 
+from src.config import PROMPT_SYSTEM,  PROMPT_MODEL_EXPERT 
 import re 
 import pandas as pd
 import os
@@ -31,7 +31,7 @@ def get_answer(patient_id, model='mistral'):
 
 from src import code_Datalog
 
-def traitement_reponse(ollama_output, patient_id):
+def traitement_reponse(ollama_output, patient_id=None):
     # Extraction du bloc <explanation>...</explanation>
     explanation_match = re.search(r"<explanation>(.*?)</explanation>", ollama_output, re.DOTALL)
     explanation = explanation_match.group(1).strip() if explanation_match else None
@@ -44,6 +44,22 @@ def traitement_reponse(ollama_output, patient_id):
             f.write(code)
     if explanation :
         with open('explanation.txt', 'w') as f : 
+            f.write(explanation)
+    return(code)
+
+def traitement_reponse_expert(ollama_output, patient_id=None):
+    # Extraction du bloc <explanation>...</explanation>
+    explanation_match = re.search(r"<rep>(.*?)</rep>", ollama_output, re.DOTALL)
+    explanation = explanation_match.group(1).strip() if explanation_match else None
+
+    # Extraction du bloc <code>...</code>
+    code_match = re.search(r"<code>(.*?)</code>", ollama_output, re.DOTALL)
+    code = code_match.group(1).strip() if code_match else None
+    if code:
+        with open("code_Datalog_corr.py", "w") as f:
+            f.write(code)
+    if explanation :
+        with open('explanation_expert.txt', 'w') as f : 
             f.write(explanation)
 
 def get_code(model = 'deepseek-coder-v2') : 
@@ -60,7 +76,18 @@ from ICD-11 CDDR].
         {"role": "system", "content": PROMPT_SYSTEM},
         {"role": "user", "content": user}
     ])
-    traitement_reponse(response['message'].content)
+    code = traitement_reponse(response['message'].content)
+    check_expert(model, code)
+
+def check_expert(model = 'deepseek-coder-v2', code = ''):
+    response = ollama.chat(
+    model=model,
+    messages=[
+        {"role": "system", "content": 
+PROMPT_MODEL_EXPERT},
+        {"role": "user", "content": code}
+    ])
+    traitement_reponse_expert(response['message'].content)
 
 
 import os
@@ -73,8 +100,7 @@ def get_prompt_patient_data_for_datalog(patient_id):
     lines = [
         "import sys",
         "sys.path.append('../')",
-        "from src import code_Datalog",
-        "from pyDatalog import pyDatalog",
+        "from notebooks import code_Datalog_corr",
         "",
         "pyDatalog.create_terms('X')",
         "",
@@ -99,7 +125,7 @@ def get_prompt_patient_data_for_datalog(patient_id):
         "# Save to txt",
         "with open('diagnosis_output.txt', 'w') as f:",
         "    for r in results:",
-        f"        f.write(f'Patient {patient_id} : {r[1]}\\n')"
+        f"        f.write(f'Patient {patient_id} : r[1]\\n')"
     ]
     
     # Sauvegarder le fichier Python
