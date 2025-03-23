@@ -1,0 +1,38 @@
+I will provide the Datalog rules for each of the disorders based on the given criteria. Let's first define the relevant symptom and condition names:
+
+```python
+symptoms = ['Depression', 'Mania', 'Mixed', 'Hypomania']
+conditions = ['Bipolar I', 'Bipolar II', 'Single Episode Depressive Disorder', 'Recurrent Depressive Disorder']
+```
+
+Now let's define the rules for Mood Episodes:
+
+```python
+# Depressive Episode
+DepressiveEpisode(PATIENT) <= Observed(PATIENT, 'Depression', WEEKS) & (sup(WEEKS, 2.0))
+
+# Manic Episode
+ManicEpisode(PATIENT) <= Observed(PATIENT, 'Mania', WEEKS) & (sup(WEEKS, 1.0))
+
+# Mixed Episode
+MixedEpisode(PATIENT) <= Observed(PATIENT, 'Depression', WEEKS) & Observed(PATIENT, 'Mania', WEEKS) & (sup(WEEKS, 1.0))
+
+# Hypomanic Episode
+HypomanicEpisode(PATIENT) <= Observed(PATIENT, 'Hypomania', WEEKS) & (sup(WEEKS, 4.0))
+```
+
+Now let's define the rules for Mood Disorders:
+
+```python
+# Bipolar I
+BipolarI(PATIENT) <= ManicEpisode(PATIENT) & History(PATIENT, 'Recurrent Depressive Disorder', Count)
+
+# Bipolar II
+BipolarII(PATIENT) <= DepressiveEpisode(PATIENT) & HypomanicEpisode(PATIENT) & History(PATIENT, 'Recurrent Depressive Disorder', Count)
+
+# Single Episode Depressive Disorder
+SingleDepressiveDisorder(PATIENT) <= DepressiveEpisode(PATIENT) & not History(PATIENT, 'Recurrent Depressive Disorder', Count)
+
+# Recurrent Depressive Disorder
+RecurrentDepressiveDisorder(PATIENT) <= (History(PATIENT, 'Recurrent Depressive Disorder', Count + 1) & not History(PATIENT, 'Single Episode Depressive Disorder', Count))
+```

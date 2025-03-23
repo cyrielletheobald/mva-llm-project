@@ -1,0 +1,26 @@
+We are dealing with the ICD-11 diagnostic criteria for Bipolar Disorders.
+
+**Step 1: Identify key components.**
+- We have four disorders:
+  - Bipolar I
+  - Bipolar II
+  - Single Episode Depressive Disorder
+  - Recurrent Depressive Disorder
+
+**Step 2: Mapping to kanren relations.**
+- We map symptom observations using the `Observed(Patient, Symptom, Week)` relation.
+- The diagnosis output is `Diagnosis(Patient, Disorder)`.
+- We also need a `History` relation for past conditions.
+
+**Step 3: Translating logic.**
+- Mood Episode criterion:
+  - The patient must have had either a 'DepressiveEpisode', 'ManicEpisode', 'MixedEpisode' or 'HypomanicEpisode'.
+- Mood Disorder criterion:
+  - Count of 'MoodEpisode's which are part of that disorder.
+  - Also we need additional rules for each specific disorder.
+
+**Step 4: Code structure.**
+- We will declare the relations and variables.
+- We will define a rule block for `Diagnosis(PATIENT, DISORDER)` using kanren’s logic.
+
+Note that we can’t directly model aggregation (COUNT) in kanren relation but we can use repeated conjunctions to implement this logic which can be handled externally or via custom recursive relations. The full version of the rule will need additional code.

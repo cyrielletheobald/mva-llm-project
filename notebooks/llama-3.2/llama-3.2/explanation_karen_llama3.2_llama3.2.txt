@@ -1,0 +1,27 @@
+We are dealing with the ICD-11 diagnostic criteria for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder.
+
+**Step 1: Identify key components.**
+- We have four disorders to consider:
+  - 'BipolarI'
+  - 'BipolarII'
+  - 'SingleEpisodeDepressiveDisorder'
+  - 'RecurrentDepressiveDisorder'
+
+- Mood Episode criterion includes 'Manic', 'Mixed', and 'Hypomanic' episodes.
+- We will translate ICD-11 CDDR criteria for these conditions.
+
+**Step 2: Mapping to kanren relations.**
+- We map symptom observations using the `Observed(Patient, Symptom, Week)` relation.
+- The diagnosis output is `Diagnosis(Patient, Disorder)`.
+- History relation includes relevant condition names.
+
+**Step 3: Translating logic.**
+- Mood Episode criteria:
+  - We will encode each criterion as a separate rule block using kanren’s `conde()` operator for the OR condition.
+- Mood Disorder criteria:
+  - Count >= 1 of 'DepressedMood' or any other symptom.
+  - Since kanren does not natively support aggregation (COUNT), we will model this via repeated conjunctions for now (basic version).
+
+**Step 4: Code structure.**
+- We will declare the relations.
+- We will define a rule block for each disorder using kanren’s logic.

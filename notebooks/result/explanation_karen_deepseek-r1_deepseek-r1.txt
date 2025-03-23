@@ -1,0 +1,26 @@
+We are translating the ICD-11 criteria for Bipolar I Disorder (MDD), Bipolar II Disorder (MDD), Single Episode Depressive Disorder (SED), and Recurrent Depressive Disorder (RDD) into Kanren Python code. The criteria involve specific mood episodes, symptom counts, and condition combinations.
+
+**Step 1: Identify key components for each disorder.**
+- **Bipolar I**: Mood Episodes (Manic or Hypomanic) with at least 2 weeks of occurrence, combined with specific mood disorder features.
+- **Bipolar II**: Mood Episodes (Manic-like symptoms), combined with specific mood disorder features.
+- **Single Episode Depressive Disorder (SED)**: One episode of depression lasting at least 2 weeks, combined with specific symptom counts and no manic episodes.
+- **Recurrent Depressive Disorder (RDD)**: Two or more depressive episodes each lasting at least 2 weeks, plus specific additional symptoms.
+
+**Step 2: Map criteria into relations.**
+- Use "Mood Episode criterion" to identify mood episodes for Bipolar I and II.
+- Use "Mood Disorder criterion" to specify the combination of features defining each disorder.
+- Use relevant symptom names from the "Relevant symptom names for Observed relation".
+- Use relevant condition names from the "Relevant condition names for History relation".
+
+**Step 3: Translate criteria into logical clauses.**
+- Each disorder will have its own rule block under `Diagnosis(PATIENT, 'DisorderName')`.
+- Use conde() to combine specific symptom counts and condition combinations.
+- Use membero() to check for membership in symptom lists.
+
+**Step 4: Handle numerical conditions externally.**
+- Since Kanren cannot directly evaluate arithmetic comparisons (>2 weeks), use filtering after the logic resolution to ensure required durations are met.
+
+**Step 5: Combine all components into final code structure.**
+- Define variables for mood episodes, symptoms, and condition names.
+- Apply conde() clauses in logical order.
+- Use & (AND) to combine specific symptom counts with overall disorder criteria.

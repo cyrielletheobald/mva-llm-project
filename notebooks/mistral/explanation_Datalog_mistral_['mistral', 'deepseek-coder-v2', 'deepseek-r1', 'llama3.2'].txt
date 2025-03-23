@@ -1,0 +1,27 @@
+We are dealing with the ICD-11 diagnostic criteria for Mood Disorders, including Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder. We will also cover the Mood Episode criteria (Depressive, Manic, Mixed, Hypomanic Episode).
+
+**Step 1: Identify key components.**
+- For each disorder type, we have different mood episodes (Depressive, Manic, Mixed, and Hypomanic). Each episode has its specific symptoms.
+- The disorders also have some common criteria, such as duration of the current episode.
+
+**Step 2: Mapping to kanren relations.**
+- We map symptom observations using the `Observed(Patient, Symptom, Week)` relation.
+- The diagnosis output is `Diagnosis(Patient, Disorder)`.
+- We will model the duration of the current episode with a new relation: `EpisodeDuration(Patient, Duration)`.
+- The past conditions experienced by patients are recorded in the `History(Patient, Condition)` relation.
+
+**Step 3: Translating logic.**
+- Mood Episode conditions:
+  - Each type of episode has a list of mandatory symptoms.
+  - We will use `conde()` to encode the OR for different episodes.
+- Disorder criteria:
+  - Meet specific duration requirements (e.g., minimum episode durations, number of episodes, etc.).
+  - At least one mood episode of the required type(s).
+- Since pyDatalog is a port of Prolog's logic programming language and shares its syntax, we will adapt our previous example for this package.
+
+**Step 4: Code structure.**
+- We will declare relations.
+- We will define a rule block for `Diagnosis(PATIENT, 'Disorder')` using pyDatalog’s logic.
+- We will also define rules for the EpisodeDuration relation to track the duration of each episode.
+
+**Note:** In production, aggregation logic would be handled externally or via custom recursive relations.
