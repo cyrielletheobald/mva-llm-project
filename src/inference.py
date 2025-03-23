@@ -8,7 +8,10 @@ import re
 import subprocess 
 import pandas as pd 
 from src.config import PATH_PROJECT
-
+from langchain.document_loaders import PyMuPDFLoader
+from langchain.vectorstores import Chroma
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
 
 df = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "dataset.xlsx").fillna("Non renseigné")
 ### LLM SOLO 
@@ -89,6 +92,79 @@ from ICD-11 CDDR].
         code = traitement_reponse(response['message'].content, model, model_expert, lan_logic)
         assert isinstance(model_expert, str)
         check_expert(model, model_expert, code, prompt_system_expert, lan_logic)
+
+def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-coder-v2', w_model_expert = True, prompt_system = PROMPT_SYSTEM, prompt_system_expert = PROMPT_MODEL_EXPERT, lan_logic = 'Datalog') : 
+    
+    vectorstore = get_vectorstore()
+    # Step 1: Retrieve relevant ICD-11 CDDR diagnostic criteria using RAG
+    disorders = ['Bipolar I', 'Bipolar II', 'Single Episode Depressive Disorder', 'Recurrent Depressive Disorder']
+    retrieved_contexts = []
+
+    for disorder in disorders:
+        query = f"What are the diagnostic criteria for {disorder}?"
+        retrieved_docs = vectorstore.similarity_search(query, k=3)  # Retrieve top 3 most relevant documents
+        retrieved_context = "\n\n".join([doc.page_content for doc in retrieved_docs])
+        retrieved_contexts.append(f"### {disorder}:\n{retrieved_context}")
+
+    retrieved_context = "\n\n".join(retrieved_contexts) 
+    
+    # Step 2: Construct user query with retrieved context
+    user = f'''Now, translate the following criteria into python code WITH THE PACKAGE pyDatalog for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
+    Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE pyDatalog.
+
+    {retrieved_context}
+    • Relevant symptom names for Observed relation: [Symptom names]
+    • Relevant condition names for History relation: [Condition names]'''
+    
+    response = ollama.chat(
+    model=model,
+    messages=[
+        {"role": "system", "content": prompt_system},
+        {"role": "user", "content": user}
+    ])
+    if w_model_expert == False: 
+        code = traitement_reponse(response['message'].content, model, 'without_expert', lan_logic)
+    else : 
+        code = traitement_reponse(response['message'].content, model, model_expert, lan_logic)
+        assert isinstance(model_expert, str)
+        check_expert(model, model_expert, code, prompt_system_expert, lan_logic)
+
+def get_vectorstore() :
+    CHROMA_PERSIST_DIR = os.path.join(PATH_PROJECT, "data/chroma_db/")
+
+    if not os.path.exists(CHROMA_PERSIST_DIR) or not os.listdir(CHROMA_PERSIST_DIR):
+        print("🆕 Création de la base Chroma et indexation des documents...")
+
+        # Charger les fichiers PDF
+        data_dir = os.path.join(PATH_PROJECT, "data/")
+        documents = []
+
+        for file in os.listdir(data_dir):
+            if file.endswith(".pdf"):
+                pdf_path = os.path.join(data_dir, file)
+                pdf_loader = PyMuPDFLoader(pdf_path)
+                documents.extend(pdf_loader.load())
+
+        # Diviser les documents en chunks
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        docs = text_splitter.split_documents(documents)
+
+        embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2",
+                                        model_kwargs={'device': device}, encode_kwargs={'device': device})
+
+        # Initialiser Chroma avec les embeddings 
+        vectorstore = Chroma.from_documents(docs, embedding_model, persist_directory=CHROMA_PERSIST_DIR)
+        vectorstore.persist()
+        print("Base Chroma sauvegardée avec succès")
+
+    else:
+        print("Chargement de la base Chroma existante...")
+        embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2",
+                                        model_kwargs={'device': device}, encode_kwargs={'device': device})
+        vectorstore = Chroma(persist_directory=CHROMA_PERSIST_DIR, embedding_function=embedding_model)
+
+    print("Base Chroma prête à être utilisée")
+    return vectorstore
 
 def check_expert(model = 'deepseek-coder-v2', model_expert = 'deepseek-coder-v2', code = '', prompt_system_expert = PROMPT_MODEL_EXPERT, lan_logic = 'Datalog'):
     if model_expert == None :
