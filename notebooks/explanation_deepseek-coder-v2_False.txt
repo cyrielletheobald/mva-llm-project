@@ -1,0 +1,14 @@
+For the bipolar I disorder, we need to consider the following criteria from the ICD-11 CDDR:
+1. Bipolar I Disorder - Mood Episode (Depressive, Manic, and Mixed) Criteria: 
+   - At least one manic episode that does not meet the criteria for a Hypomanic episode.
+   - OR at least one mixed episode.
+   - OR at least two depressive episodes within a certain timeframe.
+2. Bipolar II Disorder - Mood Episode (Depressive and Hypomanic) Criteria: 
+   - At least one hypomanic episode.
+   - AND at least one depressive episode within a certain timeframe.
+3. Single Episode Depressive Disorder - Criteria for at least one depressive episode without any manic or mixed episodes.
+4. Recurrent Depressive Disorder - Criteria for at least two depressive episodes, regardless of the presence of mania or hypomania.
+
+For all these criteria, we need to check against symptoms recorded in the Observed relation and past conditions recorded in the History relation. We will use the `Observed` and `History` relations to determine if a patient meets the diagnostic criteria for each disorder. The relevant symptom names are "Depressive", "Mania", "Mixed", "Hypomanic", and "Depressive" (for Recurrent Depressive Disorder).
+
+We will define rules that check these conditions based on the number of weeks symptoms were observed, which we'll assume is captured in the `Observed` relation. The relevant condition names for history are those specific to bipolar disorders: "Bipolar I", "Bipolar II", and for depressive episodes alone, terms like "Depressive Episode".

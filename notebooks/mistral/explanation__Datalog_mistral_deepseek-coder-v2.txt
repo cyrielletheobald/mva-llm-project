@@ -1,0 +1,11 @@
+For Bipolar I, the criteria include at least one Manic Episode and at least one Major Depressive Episode. A Manic Episode lasts at least a week (or any duration if hospitalization is necessary), with symptoms severe enough to cause marked impairment in social or occupational functioning. A Major Depressive Episode includes five or more of the following symptoms: depressed mood, decreased interest or pleasure, significant weight loss or gain, insomnia or hypersomnia, psychomotor agitation or retardation, fatigue or loss of energy, feelings of worthlessness or excessive or inappropriate guilt, diminished ability to think or concentrate, recurrent thoughts of death.
+
+For Bipolar II, the criteria include at least one Hypomanic Episode and at least one Major Depressive Episode (same as for Bipolar I). A Hypomanic Episode is less severe than a Manic Episode, lasting at least 4 days (or any duration if hospitalization is necessary), with symptoms that do not cause marked impairment in social or occupational functioning.
+
+For Single Episode Depressive Disorder and Recurrent Depressive Disorder, the criteria include a Major Depressive Episode, but there are differences in the number of episodes:
+- Single Episode Depressive Disorder: only one Major Depressive Episode is present (no history of recurrence).
+- Recurrent Depressive Disorder: multiple Major Depressive Episodes have occurred.
+
+For both types of Depressive Disorders, the symptom names relevant for Observed relation include [depressed mood, decreased interest or pleasure, significant weight loss or gain, insomnia or hypersomnia, psychomotor agitation or retardation, fatigue or loss of energy, feelings of worthlessness or excessive or inappropriate guilt, diminished ability to think or concentrate, recurrent thoughts of death].
+
+For the History relation, relevant condition names include [Manic Episode, Hypomanic Episode].
