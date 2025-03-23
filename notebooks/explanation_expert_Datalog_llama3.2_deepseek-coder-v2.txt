@@ -1,0 +1,14 @@
+Explanation of Corrections:</br></br>1. **Custom Comparison Function**: The original code uses a lambda function `sup` for comparison which is correct but does not include an explanation or context. I added it to the corrected version with a clear definition as follows: 
+   ```python
+   def sup(x, y):
+       return x >= y
+   ```
+   This custom function allows for greater than or equal to comparisons (`>=`).
+
+2. **Registering Custom Function**: Since pyDatalog does not natively support lambda functions in rules and expects operators, we need to register the custom `sup` function as an operator using `pyDatalog.create_operator`. This is done with: 
+   ```python
+   pyDatalog.create_operator('>=', 2, infix=sup)
+   ```
+   Here, `infix=sup` specifies that the custom function should be used for infix operations like `WEEKS >= 3.0`.
+
+By adding these explanations and corrections, the code becomes clearer and more robust, ensuring it will work without errors in a pyDatalog context.
