@@ -14,6 +14,8 @@ import torch
 device="cuda" if torch.cuda.is_available() else "cpu"
 
 df = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "dataset.xlsx").fillna("Non renseigné")
+
+
 ### LLM SOLO 
 
 
@@ -32,7 +34,7 @@ def get_answer(patient_id, model='mistral'):
 ### LLM WITH LOGICAL PROGRAMMING
 #---
 
-from src import code_Datalog
+
 import os
 import subprocess
 from src.config import PATH_PROJECT
@@ -45,6 +47,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 # Process the LLM output from the standard model.
 # Extracts <explanation> and <code> blocks, saves them to files, and returns the code.
+
 def traitement_reponse(ollama_output, nom_model=None, nom_model_expert=None, lan_logic='Datalog'):
     # Extract <explanation> block
     explanation_match = re.search(r"<explanation>(.*?)</explanation>", ollama_output, re.DOTALL)
@@ -69,6 +72,7 @@ def traitement_reponse(ollama_output, nom_model=None, nom_model_expert=None, lan
 
 # Process the LLM output from the expert model.
 # Extracts <rep> and <code> blocks, saves them to files, and returns nothing.
+
 def traitement_reponse_expert(ollama_output, nom_model=None, nom_model_expert=None, lan_logic='Datalog'):
     # Extract <rep> block
     explanation_match = re.search(r"<rep>(.*?)</rep>", ollama_output, re.DOTALL)
@@ -89,16 +93,126 @@ def traitement_reponse_expert(ollama_output, nom_model=None, nom_model_expert=No
             f.write(explanation)
 
 # Generate logic code from LLM models using pyDatalog and expert validation.
+mood_criteria = """
+Mood Episode Criteria (ICD-11 CDDR):
+
+1. Depressive Episode:
+   - Persistent depressed mood or loss of pleasure most of the day, nearly every day, for at least 2 weeks.
+   - Accompanied by other cognitive, behavioral, or neurovegetative symptoms such as:
+     - Reduced concentration or attention,
+     - Feelings of worthlessness or excessive guilt,
+     - Hopelessness,
+     - Thoughts of death or suicidal ideation,
+     - Insomnia or hypersomnia,
+     - Significant weight change or appetite disturbance,
+     - Psychomotor agitation or retardation,
+     - Fatigue or loss of energy.
+   - Must cause significant impairment in functioning or distress.
+   - Not better explained by other disorders or physiological effects of substances.
+
+2. Manic Episode:
+   - Elevated, expansive, or irritable mood plus increased energy or activity lasting at least 1 week (or any duration if hospitalization is necessary).
+   - Includes at least 3 of the following (4 if mood is only irritable):
+     - Inflated self-esteem or grandiosity,
+     - Decreased need for sleep,
+     - More talkative or pressured speech,
+     - Flight of ideas or racing thoughts,
+     - Distractibility,
+     - Increased goal-directed activity or psychomotor agitation,
+     - Risky behaviors (e.g., spending sprees, risky sexual behavior).
+   - Must cause significant functional impairment or necessitate hospitalization or be accompanied by psychotic symptoms.
+
+3. Mixed Episode:
+   - Rapidly alternating or simultaneous presence of manic and depressive symptoms.
+   - Significant impairment in functioning or accompanied by delusions/hallucinations.
+   - Not attributable to substances or medical conditions.
+
+4. Hypomanic Episode:
+   - Elevated or irritable mood and increased activity or energy lasting at least several days (typically ≥ 4 days).
+   - Includes at least 3 of the manic symptoms (as above).
+   - Less severe than a manic episode (no psychotic symptoms, hospitalization, or marked impairment required).
+   - Represents a noticeable change from usual functioning.
+
+Mood Disorder Criteria (ICD-11 CDDR):
+
+1. Bipolar I Disorder:
+   - History of at least one manic or mixed episode.
+   - Typically alternates with depressive episodes.
+   - Hypomanic episodes may occur but are not required.
+
+2. Bipolar II Disorder:
+   - History of at least one hypomanic episode and at least one depressive episode.
+   - No history of manic or mixed episodes.
+
+3. Single Episode Depressive Disorder:
+   - A single depressive episode meeting all criteria for a depressive episode.
+   - No history of manic, hypomanic, or mixed episodes.
+
+4. Recurrent Depressive Disorder:
+   - At least two depressive episodes, separated by periods of remission (i.e., no significant mood disturbance for several months).
+   - No history of manic, hypomanic, or mixed episodes.
+"""
 
 def get_code(model='deepseek-coder-v2', model_expert='deepseek-coder-v2', w_model_expert=True, prompt_system=PROMPT_SYSTEM, prompt_system_expert=PROMPT_MODEL_EXPERT, lan_logic='Datalog'):
     # User prompt for initial model
-    user = '''Now, translate the following criteria into python pandas code for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
+    user = f'''Now, translate the following criteria into python pandas code for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
 Recurrent Depressive Disorder. 
-• Mood Episode criterion: [Depressive, Manic, Mixed, and Hypomanic Episode criteria from ICD-11 CDDR].
-• Mood Disorder criterion: [Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder criteria
-from ICD-11 CDDR].
-• Relevant symptom names for Observed relation: [Symptom names]
-• Relevant condition names for History relation: [Condition names]'''
+• Mood Episode criterion: 1. Depressive Episode:
+   - Persistent depressed mood or loss of pleasure most of the day, nearly every day, for at least 2 weeks.
+   - Accompanied by other cognitive, behavioral, or neurovegetative symptoms such as:
+     - Reduced concentration or attention,
+     - Feelings of worthlessness or excessive guilt,
+     - Hopelessness,
+     - Thoughts of death or suicidal ideation,
+     - Insomnia or hypersomnia,
+     - Significant weight change or appetite disturbance,
+     - Psychomotor agitation or retardation,
+     - Fatigue or loss of energy.
+   - Must cause significant impairment in functioning or distress.
+   - Not better explained by other disorders or physiological effects of substances.
+
+2. Manic Episode:
+   - Elevated, expansive, or irritable mood plus increased energy or activity lasting at least 1 week (or any duration if hospitalization is necessary).
+   - Includes at least 3 of the following (4 if mood is only irritable):
+     - Inflated self-esteem or grandiosity,
+     - Decreased need for sleep,
+     - More talkative or pressured speech,
+     - Flight of ideas or racing thoughts,
+     - Distractibility,
+     - Increased goal-directed activity or psychomotor agitation,
+     - Risky behaviors (e.g., spending sprees, risky sexual behavior).
+   - Must cause significant functional impairment or necessitate hospitalization or be accompanied by psychotic symptoms.
+
+3. Mixed Episode:
+   - Rapidly alternating or simultaneous presence of manic and depressive symptoms.
+   - Significant impairment in functioning or accompanied by delusions/hallucinations.
+   - Not attributable to substances or medical conditions.
+
+4. Hypomanic Episode:
+   - Elevated or irritable mood and increased activity or energy lasting at least several days (typically ≥ 4 days).
+   - Includes at least 3 of the manic symptoms (as above).
+   - Less severe than a manic episode (no psychotic symptoms, hospitalization, or marked impairment required).
+   - Represents a noticeable change from usual functioning.
+.
+• Mood Disorder criterion: 1. Bipolar I Disorder:
+   - History of at least one manic or mixed episode.
+   - Typically alternates with depressive episodes.
+   - Hypomanic episodes may occur but are not required.
+
+2. Bipolar II Disorder:
+   - History of at least one hypomanic episode and at least one depressive episode.
+   - No history of manic or mixed episodes.
+
+3. Single Episode Depressive Disorder:
+   - A single depressive episode meeting all criteria for a depressive episode.
+   - No history of manic, hypomanic, or mixed episodes.
+
+4. Recurrent Depressive Disorder:
+   - At least two depressive episodes, separated by periods of remission (i.e., no significant mood disturbance for several months).
+   - No history of manic, hypomanic, or mixed episodes.
+
+• Relevant symptom names for Observed relation: {df['Observed_Symptom'].unique()}
+• Relevant condition names for History relation: {df['History_Condition'].unique()}'''
 
     # Query base model
     response = ollama.chat(
@@ -151,51 +265,6 @@ def check_expert(model='deepseek-coder-v2', model_expert='deepseek-coder-v2', co
 
 import subprocess
 
-def get_prompt_patient_data_for_datalog(patient_id):
-    # Filter data for the selected patient
-    patient_data = df[df['PatientID'] == patient_id]
-    
-    # Script header and imports
-    lines = [
-        "import sys",
-        "sys.path.append('../')",
-        "from notebooks import code_Datalog_corr",
-        "",
-        "from pyDatalog import pyDatalog",
-        "pyDatalog.create_terms('X')",
-        "",
-        f"# Inject facts for patient {patient_id}"
-    ]
-    
-    # Inject Observed facts
-    for symptom, value in zip(patient_data["Observed_Symptom"].values.tolist(), patient_data["Observed_Week"].values.tolist()):
-        lines.append(f"+ code_Datalog_corr.Observed('{patient_id}', '{symptom}', {value})")
-    
-    # Inject History facts
-    for condition, count in zip(patient_data["History_Condition"].values.tolist(), patient_data["History_Count"].values.tolist()):
-        if condition != "Non renseigné":
-            lines.append(f"+ code_Datalog_corr.History('{patient_id}', '{condition}', {count})")
-    
-    # Query logic and save results
-    lines += [
-        "",
-        "# Diagnosis Query",
-        "results = code_Datalog_corr.Diagnosis(code_Datalog_corr.PATIENT, X).data",
-        "",
-        "# Save to txt",
-        "with open('diagnosis_output.txt', 'w') as f:",
-        "    for r in results:",
-        f"        f.write(f'Patient {patient_id} : {r[1]}\\n')"
-    ]
-    
-    # Save the script to a file
-    output_file = f'patient_{patient_id}_diagnosis.py'
-    with open(output_file, 'w') as f:
-        f.write('\n'.join(lines))
-    
-    # Run the generated script
-    subprocess.run(['python', output_file], check=True)
-
 def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-coder-v2', w_model_expert = True, prompt_system = PROMPT_SYSTEM, prompt_system_expert = PROMPT_MODEL_EXPERT, lan_logic = 'Datalog') : 
     
     vectorstore = get_vectorstore()
@@ -212,12 +281,12 @@ def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-code
     retrieved_context = "\n\n".join(retrieved_contexts) 
     
     # Step 2: Construct user query with retrieved context
-    user = f'''Now, translate the following criteria into python code WITH THE PACKAGE karen in python between <code> and <\code> and add your explanations for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
+    user = f'''Now, translate the following criteria into python code between <code> and <\code> and add your explanations for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
     Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE pyDatalog.
 
     {retrieved_context}
-    • Relevant symptom names for Observed relation: [Symptom names]
-    • Relevant condition names for History relation: [Condition names]'''
+• Relevant symptom names for Observed relation: {df['Observed_Symptom'].unique()}
+• Relevant condition names for History relation: {df['History_Condition'].unique()}'''
     
     response = ollama.chat(
     model=model,
@@ -269,38 +338,3 @@ def get_vectorstore() :
     print("Base Chroma prête à être utilisée")
     return vectorstore
 
-def get_prompt_patient_data_for_kanren(patient_id):
-    patient_data = df[df['PatientID'] == patient_id]
-
-    lines = [
-        "from kanren import Relation, facts, run, var",
-        "",
-        "diagnosis = Relation()",
-        "symptom = Relation()",
-        "history = Relation()",
-        "",
-        f"# Facts for patient {patient_id}"
-    ]
-
-    for symptom, value in zip(patient_data["Observed_Symptom"].values.tolist(), patient_data["Observed_Week"].values.tolist()):
-        lines.append(f"facts(symptom, ('{patient_id}', '{symptom}', {value}))")
-
-    for condition, count in zip(patient_data["History_Condition"].values.tolist(), patient_data["History_Count"].values.tolist()):
-        if condition != "Non renseigné":
-            lines.append(f"facts(history, ('{patient_id}', '{condition}', {count}))")
-
-    lines += [
-        "",
-        "x = var()",
-        "results = run(0, x, diagnosis('{patient_id}', x))",
-        "",
-        "with open('diagnosis_output.txt', 'w') as f:",
-        "    for r in results:",
-        f"        f.write(f'Patient {patient_id} : {r}\n')"
-    ]
-
-    output_file = f'patient_{patient_id}_diagnosis_kanren.py'
-    with open(output_file, 'w') as f:
-        f.write('\n'.join(lines))
-
-    subprocess.run(['python', output_file], check=True)
