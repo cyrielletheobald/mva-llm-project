@@ -1,0 +1,32 @@
+To create the Datalog rules for diagnosing Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder using pyDatalog, we'll follow these steps for each disorder:
+
+1. Define the required terms and conditions:
+   - Create terms for patients, weeks, observed symptoms, mood episodes, and disorders (Diagnosis).
+   - Define any necessary helper functions if required.
+
+2. Specify the criteria for Mood Episodes:
+   - Depressive Episode
+     - Minimum duration (e.g., at least 2 weeks)
+     - Presence of five or more depressive symptoms (e.g., sadness, loss of interest, sleep disturbance, etc.)
+   - Manic Episode
+     - Minimum duration (e.g., at least 1 week)
+     - Presence of seven or more manic symptoms (e.g., inflated self-esteem, decreased need for sleep, increased goal-directed activity, etc.)
+   - Hypomanic Episode
+     - Minimum duration (e.g., at least 4 days)
+     - Presence of four or more hypomanic symptoms (e.g., inflated self-esteem, decreased need for sleep, increased goal-directed activity, etc.)
+   - Mixed Episode
+     - Simultaneous presence of depressive and manic symptoms
+
+3. Specify the criteria for Mood Disorders:
+   - Bipolar I
+     - At least one Manic or Mixed Episode (with or without any Depressive Episodes)
+   - Bipolar II
+     - At least one Hypomanic Episode and at least one Depressive Episode
+   - Single Episode Depressive Disorder
+     - Depressive Episode with no history of Manic, Hypomanic, or Mixed Episodes
+   - Recurrent Depressive Disorder
+     - Two or more separate Depressive Episodes
+
+4. Define the Diagnosis rules for each disorder based on their respective mood episode criteria.
+
+5. Use the Observed and History relations to connect the symptoms, episodes, and disorders.

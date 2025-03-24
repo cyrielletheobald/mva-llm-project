@@ -1,7 +1,16 @@
 import pandas as pd
 import os
+<<<<<<< HEAD
 from src.config import PATH_PROJECT
 
+=======
+import re 
+import subprocess 
+import pandas as pd 
+from src.config import PATH_PROJECT
+
+
+>>>>>>> c9fdc50ea2135143d18575a7af294c88b2dafc37
 df = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "dataset.xlsx").fillna("Non renseigné")
 df_instructions = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "instructions.xlsx")
 disorders_str = ''
@@ -25,4 +34,21 @@ def get_prompt_patient_data(patient_id):
         if episode != "Non renseigné":
             mood_episodes.append(episode)
     mood_episodes = "Mood episodes : " + "; ".join(mood_episodes)
+<<<<<<< HEAD
     return observed, history_conditions, mood_episodes
+=======
+    return observed, history_conditions, mood_episodes
+
+
+
+# def run_souffle(dl_file, input_dir, output_dir):
+#     command = ["souffle", "-F", input_dir, "-D", output_dir, dl_file]
+#     subprocess.run(command, check=True)
+#     print("Soufflé execution completed.")
+
+# def read_output_csv(output_dir, relation_name):
+#     csv_path = f"{output_dir}/{relation_name}.csv"
+#     df = pd.read_csv(csv_path, delimiter='\t')
+#     return df
+
+>>>>>>> c9fdc50ea2135143d18575a7af294c88b2dafc37

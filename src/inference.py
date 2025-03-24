@@ -8,10 +8,17 @@ import re
 import subprocess 
 import pandas as pd 
 from src.config import PATH_PROJECT
+<<<<<<< HEAD
 from langchain.document_loaders import PyMuPDFLoader
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
+=======
+from tqdm import tqdm
+import torch
+
+device="cuda" if torch.cuda.is_available() else "cpu"
+>>>>>>> c9fdc50ea2135143d18575a7af294c88b2dafc37
 
 df = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "dataset.xlsx").fillna("Non renseigné")
 ### LLM SOLO 
@@ -35,6 +42,7 @@ def get_answer(patient_id, model='mistral'):
 from src import code_Datalog
 import os
 import subprocess
+<<<<<<< HEAD
 
 ### traitement des réponses 
 
@@ -75,11 +83,73 @@ def traitement_reponse_expert(ollama_output, nom_model = None, nom_model_expert 
 def get_code(model = 'deepseek-coder-v2', model_expert = 'deepseek-coder-v2', w_model_expert = True, prompt_system = PROMPT_SYSTEM, prompt_system_expert = PROMPT_MODEL_EXPERT, lan_logic = 'Datalog') : 
     user = f'''Now, translate the following criteria into python code WITH THE PACKAGE pyDatalog for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
 Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE pyDatalog.
+=======
+from src.config import PATH_PROJECT
+from langchain.document_loaders import PyMuPDFLoader
+from langchain.vectorstores import Chroma
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
+
+### traitement des réponses 
+
+# Process the LLM output from the standard model.
+# Extracts <explanation> and <code> blocks, saves them to files, and returns the code.
+def traitement_reponse(ollama_output, nom_model=None, nom_model_expert=None, lan_logic='Datalog'):
+    # Extract <explanation> block
+    explanation_match = re.search(r"<explanation>(.*?)</explanation>", ollama_output, re.DOTALL)
+    explanation = explanation_match.group(1).strip() if explanation_match else None
+
+    # Extract <code> block
+    code_match = re.search(r"<code>(.*?)</code>", ollama_output, re.DOTALL)
+    code = code_match.group(1).strip() if code_match else None
+
+    # Save code to file
+    if code:
+        with open(f"code_{lan_logic}_{nom_model}_{nom_model_expert}.py", "w") as f:
+            f.write(code)
+    
+    # Save explanation to file
+    if explanation:
+        with open(f'explanation_{lan_logic}_{nom_model}_{nom_model_expert}.txt', 'w') as f:
+            f.write(explanation)
+
+    return code
+
+
+# Process the LLM output from the expert model.
+# Extracts <rep> and <code> blocks, saves them to files, and returns nothing.
+def traitement_reponse_expert(ollama_output, nom_model=None, nom_model_expert=None, lan_logic='Datalog'):
+    # Extract <rep> block
+    explanation_match = re.search(r"<rep>(.*?)</rep>", ollama_output, re.DOTALL)
+    explanation = explanation_match.group(1).strip() if explanation_match else None
+
+    # Extract <code> block
+    code_match = re.search(r"<code>(.*?)</code>", ollama_output, re.DOTALL)
+    code = code_match.group(1).strip() if code_match else None
+
+    # Save corrected code to file
+    if code:
+        with open(f"code_{lan_logic}_corr_{nom_model}_{nom_model_expert}.py", "w") as f:
+            f.write(code)
+    
+    # Save expert explanation to file
+    if explanation:
+        with open(f'explanation_expert_{lan_logic}_{nom_model}_{nom_model_expert}.txt', 'w') as f:
+            f.write(explanation)
+
+# Generate logic code from LLM models using pyDatalog and expert validation.
+
+def get_code(model='deepseek-coder-v2', model_expert='deepseek-coder-v2', w_model_expert=True, prompt_system=PROMPT_SYSTEM, prompt_system_expert=PROMPT_MODEL_EXPERT, lan_logic='Datalog'):
+    # User prompt for initial model
+    user = '''Now, translate the following criteria into python pandas code for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
+Recurrent Depressive Disorder. 
+>>>>>>> c9fdc50ea2135143d18575a7af294c88b2dafc37
 • Mood Episode criterion: [Depressive, Manic, Mixed, and Hypomanic Episode criteria from ICD-11 CDDR].
 • Mood Disorder criterion: [Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder criteria
 from ICD-11 CDDR].
 • Relevant symptom names for Observed relation: [Symptom names]
 • Relevant condition names for History relation: [Condition names]'''
+<<<<<<< HEAD
     response = ollama.chat(
     model=model,
     messages=[
@@ -96,6 +166,110 @@ from ICD-11 CDDR].
 def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-coder-v2', w_model_expert = True, prompt_system = PROMPT_SYSTEM, prompt_system_expert = PROMPT_MODEL_EXPERT, lan_logic = 'Datalog') : 
     
     vectorstore = get_vectorstore()
+=======
+
+    # Query base model
+    response = ollama.chat(
+        model=model,
+        messages=[
+            {"role": "system", "content": prompt_system},
+            {"role": "user", "content": user}
+        ]
+    )
+    print(response['message'].content)
+
+    # Process standard model response
+    if not w_model_expert:
+        code = traitement_reponse(response['message'].content, model, 'without_expert', lan_logic)
+        
+    else:
+        code = traitement_reponse(response['message'].content, model, model_expert, lan_logic)
+        #assert isinstance(model_expert, str)
+        # If multiple expert models provided
+        if isinstance(model_expert, list):
+            for index in tqdm(range(len(model_expert))):
+                try : 
+                    check_expert(model, model_expert[index], code, prompt_system_expert, lan_logic)
+                except :
+                    print(f'Error with {model_expert[index]}')
+                    pass
+        else:
+            check_expert(model, model_expert, code, prompt_system_expert, lan_logic)
+
+
+# Validate or correct code with an expert model
+def check_expert(model='deepseek-coder-v2', model_expert='deepseek-coder-v2', code='', prompt_system_expert=PROMPT_MODEL_EXPERT, lan_logic='Datalog'):
+    if model_expert is None:
+        model_expert = model
+
+    # Query expert model
+    response = ollama.chat(
+        model=model_expert,
+        messages=[
+            {"role": "system", "content": prompt_system_expert},
+            {"role": "user", "content": code}
+        ]
+    )
+
+    # Process expert model response
+    traitement_reponse_expert(response['message'].content, model, model_expert, lan_logic)
+
+
+# Generate and run a custom diagnosis script for a given patient using pyDatalog.
+
+import subprocess
+
+def get_prompt_patient_data_for_datalog(patient_id):
+    # Filter data for the selected patient
+    patient_data = df[df['PatientID'] == patient_id]
+    
+    # Script header and imports
+    lines = [
+        "import sys",
+        "sys.path.append('../')",
+        "from notebooks import code_Datalog_corr",
+        "",
+        "from pyDatalog import pyDatalog",
+        "pyDatalog.create_terms('X')",
+        "",
+        f"# Inject facts for patient {patient_id}"
+    ]
+    
+    # Inject Observed facts
+    for symptom, value in zip(patient_data["Observed_Symptom"].values.tolist(), patient_data["Observed_Week"].values.tolist()):
+        lines.append(f"+ code_Datalog_corr.Observed('{patient_id}', '{symptom}', {value})")
+    
+    # Inject History facts
+    for condition, count in zip(patient_data["History_Condition"].values.tolist(), patient_data["History_Count"].values.tolist()):
+        if condition != "Non renseigné":
+            lines.append(f"+ code_Datalog_corr.History('{patient_id}', '{condition}', {count})")
+    
+    # Query logic and save results
+    lines += [
+        "",
+        "# Diagnosis Query",
+        "results = code_Datalog_corr.Diagnosis(code_Datalog_corr.PATIENT, X).data",
+        "",
+        "# Save to txt",
+        "with open('diagnosis_output.txt', 'w') as f:",
+        "    for r in results:",
+        f"        f.write(f'Patient {patient_id} : {r[1]}\\n')"
+    ]
+    
+    # Save the script to a file
+    output_file = f'patient_{patient_id}_diagnosis.py'
+    with open(output_file, 'w') as f:
+        f.write('\n'.join(lines))
+    
+    # Run the generated script
+    subprocess.run(['python', output_file], check=True)
+
+def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-coder-v2', w_model_expert = True, prompt_system = PROMPT_SYSTEM, prompt_system_expert = PROMPT_MODEL_EXPERT, lan_logic = 'Datalog', vectorstore=None) : 
+    
+    if vectorstore is None:
+        vectorstore = get_vectorstore()
+
+>>>>>>> c9fdc50ea2135143d18575a7af294c88b2dafc37
     # Step 1: Retrieve relevant ICD-11 CDDR diagnostic criteria using RAG
     disorders = ['Bipolar I', 'Bipolar II', 'Single Episode Depressive Disorder', 'Recurrent Depressive Disorder']
     retrieved_contexts = []
@@ -109,8 +283,13 @@ def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-code
     retrieved_context = "\n\n".join(retrieved_contexts) 
     
     # Step 2: Construct user query with retrieved context
+<<<<<<< HEAD
     user = f'''Now, translate the following criteria into python code WITH THE PACKAGE pyDatalog for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
     Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE pyDatalog.
+=======
+    user = f'''Now, translate the following criteria into python code with {lan_logic} between <code> and <\\code> and add your explanations for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
+    Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE {lan_logic}.
+>>>>>>> c9fdc50ea2135143d18575a7af294c88b2dafc37
 
     {retrieved_context}
     • Relevant symptom names for Observed relation: [Symptom names]
@@ -128,6 +307,10 @@ def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-code
         code = traitement_reponse(response['message'].content, model, model_expert, lan_logic)
         assert isinstance(model_expert, str)
         check_expert(model, model_expert, code, prompt_system_expert, lan_logic)
+<<<<<<< HEAD
+=======
+    return code
+>>>>>>> c9fdc50ea2135143d18575a7af294c88b2dafc37
 
 def get_vectorstore() :
     CHROMA_PERSIST_DIR = os.path.join(PATH_PROJECT, "data/chroma_db/")
@@ -166,6 +349,7 @@ def get_vectorstore() :
     print("Base Chroma prête à être utilisée")
     return vectorstore
 
+<<<<<<< HEAD
 def check_expert(model = 'deepseek-coder-v2', model_expert = 'deepseek-coder-v2', code = '', prompt_system_expert = PROMPT_MODEL_EXPERT, lan_logic = 'Datalog'):
     if model_expert == None :
         model_expert = model
@@ -223,3 +407,40 @@ def get_prompt_patient_data_for_datalog(patient_id):
     
     # Exécuter le script
     subprocess.run(['python', output_file], check=True)
+=======
+def get_prompt_patient_data_for_kanren(patient_id):
+    patient_data = df[df['PatientID'] == patient_id]
+
+    lines = [
+        "from kanren import Relation, facts, run, var",
+        "",
+        "diagnosis = Relation()",
+        "symptom = Relation()",
+        "history = Relation()",
+        "",
+        f"# Facts for patient {patient_id}"
+    ]
+
+    for symptom, value in zip(patient_data["Observed_Symptom"].values.tolist(), patient_data["Observed_Week"].values.tolist()):
+        lines.append(f"facts(symptom, ('{patient_id}', '{symptom}', {value}))")
+
+    for condition, count in zip(patient_data["History_Condition"].values.tolist(), patient_data["History_Count"].values.tolist()):
+        if condition != "Non renseigné":
+            lines.append(f"facts(history, ('{patient_id}', '{condition}', {count}))")
+
+    lines += [
+        "",
+        "x = var()",
+        "results = run(0, x, diagnosis('{patient_id}', x))",
+        "",
+        "with open('diagnosis_output.txt', 'w') as f:",
+        "    for r in results:",
+        f"        f.write(f'Patient {patient_id} : {r}\n')"
+    ]
+
+    output_file = f'patient_{patient_id}_diagnosis_kanren.py'
+    with open(output_file, 'w') as f:
+        f.write('\n'.join(lines))
+
+    subprocess.run(['python', output_file], check=True)
+>>>>>>> c9fdc50ea2135143d18575a7af294c88b2dafc37
