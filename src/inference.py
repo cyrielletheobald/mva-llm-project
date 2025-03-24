@@ -196,9 +196,11 @@ def get_prompt_patient_data_for_datalog(patient_id):
     # Run the generated script
     subprocess.run(['python', output_file], check=True)
 
-def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-coder-v2', w_model_expert = True, prompt_system = PROMPT_SYSTEM, prompt_system_expert = PROMPT_MODEL_EXPERT, lan_logic = 'Datalog') : 
+def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-coder-v2', w_model_expert = True, prompt_system = PROMPT_SYSTEM, prompt_system_expert = PROMPT_MODEL_EXPERT, lan_logic = 'Datalog', vectorstore=None) : 
     
-    vectorstore = get_vectorstore()
+    if vectorstore is None:
+        vectorstore = get_vectorstore()
+
     # Step 1: Retrieve relevant ICD-11 CDDR diagnostic criteria using RAG
     disorders = ['Bipolar I', 'Bipolar II', 'Single Episode Depressive Disorder', 'Recurrent Depressive Disorder']
     retrieved_contexts = []
@@ -212,8 +214,8 @@ def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-code
     retrieved_context = "\n\n".join(retrieved_contexts) 
     
     # Step 2: Construct user query with retrieved context
-    user = f'''Now, translate the following criteria into python code WITH THE PACKAGE karen in python between <code> and <\code> and add your explanations for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
-    Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE pyDatalog.
+    user = f'''Now, translate the following criteria into python code with {lan_logic} between <code> and <\\code> and add your explanations for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
+    Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE {lan_logic}.
 
     {retrieved_context}
     • Relevant symptom names for Observed relation: [Symptom names]
@@ -231,6 +233,7 @@ def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-code
         code = traitement_reponse(response['message'].content, model, model_expert, lan_logic)
         assert isinstance(model_expert, str)
         check_expert(model, model_expert, code, prompt_system_expert, lan_logic)
+    return code
 
 def get_vectorstore() :
     CHROMA_PERSIST_DIR = os.path.join(PATH_PROJECT, "data/chroma_db/")
