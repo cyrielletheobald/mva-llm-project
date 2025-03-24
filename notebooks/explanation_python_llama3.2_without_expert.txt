@@ -1,0 +1,42 @@
+To translate these diagnostic criteria into Python pandas code, we need to identify the relevant symptoms and conditions that meet each criterion. We will use a similar approach as in the schizophrenia diagnosis.
+
+For Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder, we need to check for the presence of depressive episodes, hypomanic episodes, or mixed episodes. We also need to verify the history of manic, hypomanic, or mixed episodes for each condition.
+
+We will use the following conditions and symptoms:
+
+* Conditions:
+	+ 'depressive' (Depressive Episode)
+	+ 'hypomanic' (Hypomanic Episode)
+	+ 'Non renseigné' (Not applicable, as this is not a recognized mood disorder)
+	+ 'mixed' (Mixed Episode)
+	+ 'manic' (Manic Episode)
+* Symptoms:
+	+ 'depressed_mood'
+	+ 'reduced_concentration'
+	+ 'reduced_energy'
+	+ 'increased_talkativeness'
+	+ 'diminished_interest_pleasure'
+	+ 'low_self_worth'
+	+ 'psychomotor_disturbances'
+	+ 'increased_activity_energy'
+	+ 'euphoria_irritability_expansiveness'
+	+ 'racing_thoughts'
+	+ 'increased_self_esteem'
+	+ 'disrupted_excessive_sleep'
+	+ 'change_in_appetite_weight'
+	+ 'decreased_need_for_sleep'
+	+ 'distractibility'
+	+ 'recurrent_thoughts_death_suicide'
+	+ 'impulsive_reckless_behavior'
+	+ 'increased_sexual_sociability_goal_directed_activity'
+	+ 'hopelessness'
+	+ 'delusions'
+	+ 'passivity_experiences'
+	+ 'disorganized_behavior'
+
+We will use the following rules to diagnose each condition:
+
+* Bipolar I Disorder: History of at least one manic or mixed episode.
+* Bipolar II Disorder: History of at least one hypomanic episode and at least one depressive episode, with no history of manic episodes.
+* Single Episode Depressive Disorder: A single depressive episode meeting all criteria for a depressive episode, with no history of manic, hypomanic, or mixed episodes.
+* Recurrent Depressive Disorder: At least two depressive episodes, separated by periods of remission (i.e., no significant mood disturbance for several months), with no history of manic, hypomanic, or mixed episodes.
