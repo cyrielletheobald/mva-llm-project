@@ -8,12 +8,14 @@ import re
 import subprocess 
 import pandas as pd 
 from src.config import PATH_PROJECT
+from src import dataprep
 from tqdm import tqdm
 import torch
 
 device="cuda" if torch.cuda.is_available() else "cpu"
 
-df = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "dataset.xlsx").fillna("Non renseigné")
+df = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "dataset.xlsx").fillna("Non renseigne")
+df_grouped = dataprep.preproc_df()
 
 
 ### LLM SOLO 
@@ -156,7 +158,7 @@ Mood Disorder Criteria (ICD-11 CDDR):
 def get_code(model='deepseek-coder-v2', model_expert='deepseek-coder-v2', w_model_expert=True, prompt_system=PROMPT_SYSTEM, prompt_system_expert=PROMPT_MODEL_EXPERT, lan_logic='Datalog'):
     # User prompt for initial model
     user = f'''Now, translate the following criteria into python pandas code for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
-Recurrent Depressive Disorder. 
+Recurrent Depressive Disorder. Implement the logical rules to determine the diagnosis. Careful, the patients are duplicated across lines for each observed symptom
 • Mood Episode criterion: 1. Depressive Episode:
    - Persistent depressed mood or loss of pleasure most of the day, nearly every day, for at least 2 weeks.
    - Accompanied by other cognitive, behavioral, or neurovegetative symptoms such as:
@@ -210,9 +212,7 @@ Recurrent Depressive Disorder.
 4. Recurrent Depressive Disorder:
    - At least two depressive episodes, separated by periods of remission (i.e., no significant mood disturbance for several months).
    - No history of manic, hypomanic, or mixed episodes.
-
-• Relevant symptom names for Observed relation: {df['Observed_Symptom'].unique()}
-• Relevant condition names for History relation: {df['History_Condition'].unique()}'''
+ Relevant symptom names for Observed relation: {df['Observed_Symptom'].unique()} Relevant condition names for History relation: {df['History_Condition'].unique()} Name of the columns of the df  : {df_grouped.columns} Example of one patient from the df : {df_grouped[df_grouped['PatientID'] == 1]}'''
 
     # Query base model
     response = ollama.chat(
@@ -281,12 +281,7 @@ def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-code
     retrieved_context = "\n\n".join(retrieved_contexts) 
     
     # Step 2: Construct user query with retrieved context
-    user = f'''Now, translate the following criteria into python code between <code> and <\code> and add your explanations for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
-    Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE pyDatalog.
-
-    {retrieved_context}
-• Relevant symptom names for Observed relation: {df['Observed_Symptom'].unique()}
-• Relevant condition names for History relation: {df['History_Condition'].unique()}'''
+    user = f'''Now, translate the following criteria into python code between <code> and <\code> and add your explanations for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE pyDatalog. {retrieved_context} Relevant symptom names for Observed relation: {df['Observed_Symptom'].unique()}  Relevant condition names for History relation: {df['History_Condition'].unique()}'''
     
     response = ollama.chat(
     model=model,

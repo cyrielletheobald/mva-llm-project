@@ -1,4 +1,4 @@
-PATH_PROJECT = r'C:\Users\FX506\Desktop\CS\3A\MVA\LLM\mva-llm-project'
+PATH_PROJECT = r'C:/Users/victo/Documents/LLM/mva-llm-project'
 
 
 PROMPT_SYSTEM = ''' You are an expert system in translating mental health diagnostic criteria into executable python programs.
