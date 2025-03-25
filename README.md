@@ -3,7 +3,7 @@
 Project for the LLM course by Cyrielle Théobald, Raphaël Faure and Victor Jéséquel
 
 Here is the structure of the project : 
-
+<pre>'''
 .
 ├── data/                          # Input data and Chroma vector database
 │   ├── chroma_db/                # Persistent Chroma database
@@ -27,7 +27,7 @@ Here is the structure of the project :
 ├── README.md                     # Project documentation
 ├── requirements.txt              # Python dependencies
 └── .gitignore                    # Files and folders to ignore in version control
-
+'''</pre>
 Based on the paper "Large Language Models for Interpretable Mental Health Diagnosis" from Brian Hyeongseok Kim, Chao Wang. 
 
 Paper : http://arxiv.org/abs/2501.07653 
