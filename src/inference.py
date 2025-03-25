@@ -17,6 +17,8 @@ device="cuda" if torch.cuda.is_available() else "cpu"
 df = pd.read_excel(os.path.join(PATH_PROJECT, "data/") + "dataset.xlsx").fillna("Non renseigne")
 df_grouped = dataprep.preproc_df()
 
+device="cuda" if torch.cuda.is_available() else "cpu"
+
 
 ### LLM SOLO 
 
