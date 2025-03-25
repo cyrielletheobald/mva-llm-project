@@ -96,7 +96,7 @@ def traitement_reponse_expert(ollama_output, nom_model=None, nom_model_expert=No
         with open(f'explanation_expert_{lan_logic}_{nom_model}_{nom_model_expert}.txt', 'w') as f:
             f.write(explanation)
 
-# Generate logic code from LLM models using pyDatalog and expert validation.
+# Generate logic code from LLM models using pyDatalog or other logical programming language and expert validation.
 mood_criteria = """
 Mood Episode Criteria (ICD-11 CDDR):
 
@@ -159,7 +159,7 @@ Mood Disorder Criteria (ICD-11 CDDR):
 
 def get_code(model='deepseek-coder-v2', model_expert='deepseek-coder-v2', w_model_expert=True, prompt_system=PROMPT_SYSTEM, prompt_system_expert=PROMPT_MODEL_EXPERT, lan_logic='Datalog'):
     # User prompt for initial model
-    user = f'''Now, translate the following criteria into python pandas code for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
+    user = f'''Now, translate the following criteria into code for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and
 Recurrent Depressive Disorder. Implement the logical rules to determine the diagnosis. Careful, the patients are duplicated across lines for each observed symptom
 • Mood Episode criterion: 1. Depressive Episode:
    - Persistent depressed mood or loss of pleasure most of the day, nearly every day, for at least 2 weeks.
@@ -224,7 +224,8 @@ Recurrent Depressive Disorder. Implement the logical rules to determine the diag
             {"role": "user", "content": user}
         ]
     )
-    print(response['message'].content)
+
+    print(response['message'].content) #print the output
 
     # Process standard model response
     if not w_model_expert:
@@ -232,11 +233,11 @@ Recurrent Depressive Disorder. Implement the logical rules to determine the diag
         
     else:
         code = traitement_reponse(response['message'].content, model, model_expert, lan_logic)
-        #assert isinstance(model_expert, str)
+
         # If multiple expert models provided
         if isinstance(model_expert, list):
             for index in tqdm(range(len(model_expert))):
-                try : 
+                try : #to avoid Ollama errors
                     check_expert(model, model_expert[index], code, prompt_system_expert, lan_logic)
                 except :
                     print(f'Error with {model_expert[index]}')
@@ -263,7 +264,7 @@ def check_expert(model='deepseek-coder-v2', model_expert='deepseek-coder-v2', co
     traitement_reponse_expert(response['message'].content, model, model_expert, lan_logic)
 
 
-# Generate and run a custom diagnosis script for a given patient using pyDatalog.
+# Generate and run a custom diagnosis script for a given patient using the RAG.
 
 import subprocess
 
@@ -285,7 +286,7 @@ def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-code
     retrieved_context = "\n\n".join(retrieved_contexts) 
     
     # Step 2: Construct user query with retrieved context
-    user = f'''Now, translate the following criteria into python code between <code> and <\code> and add your explanations for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder. IT MUST BE IN PYTHON WITH THE PACKAGE pyDatalog. {retrieved_context} Relevant symptom names for Observed relation: {df['Observed_Symptom'].unique()}  Relevant condition names for History relation: {df['History_Condition'].unique()}'''
+    user = f'''Now, translate the following criteria into python code between <code> and <\code> and add your explanations for Bipolar I, Bipolar II, Single Episode Depressive Disorder, and Recurrent Depressive Disorder.  {retrieved_context} Relevant symptom names for Observed relation: {df['Observed_Symptom'].unique()}  Relevant condition names for History relation: {df['History_Condition'].unique()}'''
     
     response = ollama.chat(
     model=model,
@@ -293,6 +294,7 @@ def get_code_with_rag(model = 'deepseek-coder-v2', model_expert = 'deepseek-code
         {"role": "system", "content": prompt_system},
         {"role": "user", "content": user}
     ])
+
     if w_model_expert == False: 
         code = traitement_reponse(response['message'].content, model, 'without_expert', lan_logic)
     else : 

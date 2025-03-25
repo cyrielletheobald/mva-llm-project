@@ -7,7 +7,7 @@ We will use the following conditions and symptoms:
 * Conditions:
 	+ 'depressive' (Depressive Episode)
 	+ 'hypomanic' (Hypomanic Episode)
-	+ 'Non renseigné' (Not applicable, as this is not a recognized mood disorder)
+	+ 'Non renseignï¿½' (Not applicable, as this is not a recognized mood disorder)
 	+ 'mixed' (Mixed Episode)
 	+ 'manic' (Manic Episode)
 * Symptoms:
